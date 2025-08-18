@@ -70,6 +70,12 @@ phone: string;
 email: string;
 }
 ```
+interface IBasketItem {
+    id: string;
+    title: string;
+    price: number;
+    count: number;
+}
 
 Данные корзины
 
@@ -99,59 +105,36 @@ export type TContactsModal = Pick<IOrderForm, 'email' | 'phone'>;
 - Паттерн MVP (Model-View-Presenter)
 ```
 
-1. Компонент товара (Product)
 
-```
-Ответственность:
-•	Отображение карточек товаров в каталоге
-•	Визуализация ключевых характеристик: названия, цены, категории и изображения
-Функционал:
-•	Рендеринг карточки товара по переданным данным
-•	Обработка кликов для открытия детализированного просмотра
-•	Визуальное выделение категорий товаров
-```
+Опишите сами классы.
 
-2. Компонент оформления заказа (Order)
+Классы слоя Модели:
 
-```
-Ответственность:
-•	Реализация процесса оформления покупки
-•	Взаимодействие с пользователем на финальном этапе
-Функционал:
-•	Валидация контактных данных (email, телефон)
-•	Проверка обязательных полей (адрес доставки)
-•	Выбор способа оплаты (онлайн/при получении)
-•	Отправка собранных данных на сервер
-•	Отображение статуса выполнения заказа
-•	Показ подтверждения успешного оформления
+Класс такой-то. Отвечает за то-то и то-то.
+Поля класса
 
-```
+catalog: IProduct[] - Массив товаров каталога
+....
 
-Model: отвечает за хранение данных
+Методы класса:
 
-```
-•	Данные
+setProducts(items: IProduct[]): void - Метод для сохранения массива товаров в Модели
+getProducts(): IProduct[] - Получения массива товаров каталога
+...
 
-o	Список товаров (название, категория, цена, изображение).
-o	 Данные заказа (адрес, email, телефон, способ оплаты, итоговая сумма).
-```
+И вот так все поля и методы с типами данных.
 
-View: отвечает за отображение данных на странице
+Классы слоя Представления:
 
-```
-•	страница:
-o	Рендер списка товаров.
-```
+Класс Basket отвечает за отображение списка купленных товаров, общей суммы покупки и кнопки оформления покупки
 
-Presenter: отвечает за связь представления и данных.
+Поля:
+....
 
-```
-•	действия:
-o	Обновление каталога.
-o	Валидация форм.
-o	Отправка заказа в API.
+Методы: 
+....
 
-```
+И т.д.
 
 ## Базовый код
 
@@ -189,6 +172,8 @@ catalog: IProduct[] - Массив товаров каталога\
 
 events: IEvents - экземпляр класса EventEmitter для инициализации событий при изменении данных
 
+preview: IProduct -  поле в котором будет сохраняться карточка
+
 constructor(protected events: IEvents) {}
 
 Методы класса:
@@ -199,10 +184,7 @@ constructor(protected events: IEvents) {}
     // Получения массива товаров каталога
     getProducts(): IProduct[]
 
-    // Поиск товара по id
-    getProductById(id: string): IProduct
-
-    //Просмотр товара
+        //Просмотр товара
     setPreview(value: IProduct) {}
 
 ...
@@ -232,7 +214,57 @@ constructor(protected events: IEvents) {}
     // Валидация формы
     checkValidation(field: keyof IOrderForm, value: string): boolean
 
+#### Класс BasketData  
+
+class BasketData 
+   _items: IBasketItem[] = [];
+    events: IEvents;
+    order: IOrder 
+    formErrors
+
+
+
+    constructor(events: IEvents) {}
+
+Методы класса:
+    // Добавить товар в корзину
+     add(product: IProduct): void  
+
+    // Удалить товар 
+    deleteProduct(product: IProduct): void 
+
+    // Получить список товаров
+     get items(): IBasketItem[] {}  
+
+    // Получить общую стоимость
+    get total(): number {}  
+
+    // Получить общее количество товаров  
+    get totalItems(): number {}
+
+    
+
 ### Слой представления
+<!-- 
+Получается, что у тебя будут классы:
+Товар (тут или один обрабатывающий 3 темплейта или три разных, но у них общий родитель)
+Модалка
+Форма подтверждения покупки
+2 класса форм с данными покупателя (у них общий класс родитель Form)
+Корзина 
+Страница -->
+
+#### Базовый Класс Component
+
+Класс является дженериком и родителем всех компонентов слоя представления. В дженерик принимает тип объекта, в котором данные будут передаваться в метод render для отображения данных в компоненте. В конструктор принимает элемент разметки, являющийся основным родительским контейнером компонента. Содержит метод render, отвечающий за сохранение полученных в параметре данных в полях компонентов через их сеттеры, возвращает обновленный контейнер компонента.
+Методы:
+- `toggleClass` - удаление/добавления класса DOM-элементу
+- `setText` - установить текстовое содержимое
+- `setDisabled` - включение/отключение кнопки
+- `setHidden` - устанавливает DOM-элементу CSS-свойство display в значение 'none'
+- `setVisible` - удаляет CSS-свойство display у элемента
+- `setImage` - устанавливает элементу Image значения атрибута src и alt
+- `render` - отрисовка DOM-элементов 
 
 #### Класс Modal
 
@@ -259,75 +291,85 @@ constructor(protected events: IEvents) {}
     // рендер
     render(data): HTMLElement
 
-#### Класс PaymentModal
+### Класс Form
+
+// родитель для форм 
+ class Form 
+ Поля класса:
+
+	_buttons: HTMLButtonElement;
+	_inputs: HTMLInputElement[];	
+	_errors: HTMLElement;
+
+
+Методы класса:
+
+    // Устанавливает состояние валидности формы  
+	set valid(value: boolean);  
+
+    // Устанавливает текст ошибок формы  
+	set errors(value: string);  
+
+    // Рендерит форму  
+	render(): HTMLElement;
+
+
+
+#### Класс PaymentForm
 
 Модальное окно для выбора способа оплаты и адреса доставки
 
-PaymentModal расширяет класс Modal
+PaymentForm extends Form
 
 Конструктор:
 
     constructor(container: HTMLElement, events: IEvents)
 
 Поля класса:  
-\_payment: string;  
-\_address: string;  
-\_buttons: HTMLButtonElement  
-\_inputs: HTMLInputElement
+\_payment: HTMLButtonElemen;  
+\_address: HTMLInputElement;  
+
 
 Методы класса:
-
-    //сеттер, который позволяет контролировать и изменять состояние валидности
-    set valid(value: boolean)
-
-    //сеттер, предназначен для хранения и обработки сообщений об ошибках
-    set errors(value: string)
 
     //рендер
     render(data): HTMLElement
 
-#### Класс ContactsModal
+#### Класс ContactsForm
 
 Модальное окно для ввода контактных данных пользователя.
-ContactsModal расширяет класс Modal
+ContactsForm extends Form
 
 Конструктор:
 
     constructor(container: HTMLElement, events: IEvents)
 
 Поля класса:  
-\_email: string;  
-\_phone: string;  
-\_buttons: HTMLButtonElement  
-\_inputs: HTMLInputElement
+\_email: HTMLElementg;  
+\_phone: HTMLElement;  
+
 
 Методы класса:
-
-    //сеттер, который позволяет контролировать и изменять состояние валидности
-    set valid(value: boolean)
-
-    //сеттер, предназначен для хранения и обработки сообщений об ошибках
-    set errors(value: string)
-
+   
     //рендер
     render(data): HTMLElement
 
-#### Класс SuccessModal
+#### Класс SuccessForm
 
 Модальное окно для отображения успешного выполнения операции.
-SuccessModal расширяет класс Modal
+SuccessForm расширяет класс Modal
 
 Конструктор:
 
     constructor(container: HTMLElement, events: IEvents)
 
 Поля класса:  
-\_description: string;  
+\_description: HTMLElement;  
 \_buttons: HTMLButtonElement
 
 #### Класс Basket
 
-Класс Basket extends Modal
+Класс Basket 
 Отвечает за отображение списка купленных товаров, общей суммы покупки и кнопки оформления покупки
 
 Поля класса:
@@ -341,7 +383,7 @@ SuccessModal расширяет класс Modal
 
 Конструктор:
 
-    constructor(container: HTMLElement, model: AppData)
+    constructor(container: HTMLElement,  events: IEvents)
 
 Методы класса:
 

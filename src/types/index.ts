@@ -1,10 +1,3 @@
-//Типов данных с которыми будете работать в приложении. Как минимум у вас должны быть описаны объекты приходящие к вам через API и объекты выводимые на экране. Ваши модели в итоге должны будут трансформировать один тип в другой.
-//Интерфейс API-клиента
-//Интерфейсы модели данных
-//Интерфейсы отображений
-//Интерфейсы базовых классов
-//Перечисление событий и их интерфейсы (если используете брокер)
-//Любые другие типы и интерфейсы если вы заложили их в архитектуру
 
 export interface IProduct {
 	id: string;
@@ -19,6 +12,12 @@ export interface IOrderForm {
 	address: string;
 	phone: string;
 	email: string;
+}
+export interface IBasketItem {
+    id: string;
+    title: string;
+    price: number;
+    count: number;
 }
 
 export type TBasketModal = Pick<IProduct, 'title' | 'price'>;
