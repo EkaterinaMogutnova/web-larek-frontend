@@ -1,22 +1,95 @@
-// Класс ProductData отвечает за хранения массива товаров
+import { IProduct, IOrder, FormErrors, IOrderForm, IAppData } from '../types';
+import { Model } from '../components/base/Model';
 
-// Поля класса:
+const EMPTY_ORDER: IOrder = {
+  payment: undefined,
+  address: '',
+  email: '',
+  phone: '',
+  total: 0,
+  items: [],
+}
 
-// catalog: IProduct[] - Массив товаров каталога\
+export class AppData extends Model<IAppData> {
+  catalog: IProduct[] = [];
+  basket: IProduct[] = [];
+  order: IOrder = { ...EMPTY_ORDER };
+  formErrors: FormErrors = {};
 
-// events: IEvents - экземпляр класса EventEmitter для инициализации событий при изменении данных
+  getTotalBasketPrice(): number {
+    return this.basket.reduce((sum, next) => sum + next.price, 0);
+  }
 
-// preview: IProduct -  поле в котором будет сохраняться карточка
+  addToBasket(value: IProduct) {
+    this.basket.push(value);
+  }
 
-// constructor(protected events: IEvents) {}
+  deleteFromBasket(id: string) {
+    this.basket = this.basket.filter(item => item.id !== id);
+  }
 
-// Методы класса:
+  getBasketAmount(): number {
+    return this.basket.length;
+  }
 
-//     // Метод для сохранения массива товаров в Модели
-//     setProducts(items: IProduct[]): void
+  setProducts(items: IProduct[]) {
+   this.catalog = items;
+   this.emitChanges('items:changed', { catalog: this.catalog });
+  }
 
-//     // Получения массива товаров каталога
-//     getProducts(): IProduct[]
+  setOrderField(field: keyof IOrderForm, value: string) {
+    this.order[field] = value;
 
-//         //Просмотр товара
-//     setPreview(value: IProduct) {}
+    this.validateContacts();
+    this.validateOrder();
+  }
+
+  validateContacts() {
+    const errors: typeof this.formErrors = {};
+
+    if (!this.order.email) {
+      errors.email = 'Необходимо указать email';
+    }
+
+    if (!this.order.phone) {
+      errors.phone = 'Необходимо указать телефон';
+    }
+
+    this.formErrors = errors;
+    this.events.emit('contactsFormErrors:change', this.formErrors);
+  }
+
+  validateOrder() {
+    const errors: typeof this.formErrors = {};
+
+    if (!this.order.address) {
+      errors.address = 'Необходимо указать адрес';
+    }
+
+    if (!this.order.payment) {
+      errors.payment = 'Необходимо указать способ оплаты';
+    }
+
+    this.formErrors = errors;
+    this.events.emit('orderFormErrors:change', this.formErrors);
+  }
+
+  private clearBasket() {
+    this.basket.length = 0;
+  }
+
+  private clearOrder() {
+    this.order = { ...EMPTY_ORDER };
+  }
+
+  private resetSelected() {
+    this.catalog.forEach(item => item.selected = false)
+  }
+
+  clearOrderData() {
+    this.clearBasket();
+    this.clearOrder();
+    this.resetSelected();
+    this.formErrors = {}
+  }
+}

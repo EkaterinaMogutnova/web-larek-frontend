@@ -1,5 +1,3 @@
-//из оно должно работать
-
 import { ensureElement } from "../utils/utils";
 import { Component } from "./base/component";
 import { IEvents } from "./base/events";

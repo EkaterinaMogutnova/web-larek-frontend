@@ -1,5 +1,3 @@
-// из ОНО должно работать
-
 import { IEvents } from "./events";
 
 /**
