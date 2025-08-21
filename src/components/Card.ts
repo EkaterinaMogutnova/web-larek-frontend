@@ -1,22 +1,13 @@
 import { Component } from './base/component';
 import { ensureElement, handlePrice } from '../utils/utils';
 import { CDN_URL } from '../utils/constants';
+import { IProduct } from '../types';
 
 interface ICardActions {
 	onClick: (event: MouseEvent) => void;
 }
 
-export interface ICard {
-	id: string;
-	category: string;
-	description: string;
-	title: string;
-	image: string;
-	price: number;
-	selected: boolean;
-}
-
-export class Card extends Component<ICard> {
+export class Card extends Component<IProduct> {
 	protected _category: HTMLElement;
 	protected _image?: HTMLImageElement;
 	protected _title: HTMLElement;

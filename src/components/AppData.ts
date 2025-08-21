@@ -26,6 +26,7 @@ export class AppData extends Model<IAppData> {
 
   deleteFromBasket(id: string) {
     this.basket = this.basket.filter(item => item.id !== id);
+    this.events.emit('basket:change');
   }
 
   getBasketAmount(): number {

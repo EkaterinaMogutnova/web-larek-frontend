@@ -9,7 +9,7 @@ import { cloneTemplate, ensureElement } from './utils/utils';
 import { Page } from './components/Page';
 import { Modal } from './components/Modal';
 import { Basket, BasketItem } from './components/Basket';
-import {Order} from './components/Order';
+import { Order } from './components/Order';
 import { Contacts } from './components/Contact';
 import { Success } from './components/Success';
 
@@ -34,8 +34,8 @@ const success = new Success(cloneTemplate(successTemplate), {
 	onClick: () => {
 		events.emit('modal:close');
 		modal.close();
-	}
-})
+	},
+});
 
 // Запрашиваем каталог продуктов
 api
@@ -50,7 +50,11 @@ api
 
 function renderPreview(item: IProduct) {
 	const preview = new CardPreview(cloneTemplate(cardPreviewTemplate), {
-		onClick: () => events.emit(item.selected ? 'card:deleteFromBasket' : 'card:toBasket', item)
+		onClick: () =>
+			events.emit(
+				item.selected ? 'card:deleteFromBasket' : 'card:toBasket',
+				item
+			),
 	});
 
 	modal.render({
@@ -108,10 +112,9 @@ events.on('card:deleteFromBasket', (item: IProduct) => {
 // Обработчик открытия корзины
 events.on('basket:open', () => {
 	const items = appData.basket.map((item, index) => {
-		const basketItem = new BasketItem(
-			cloneTemplate(cardBasketTemplate),
-			{ onClick: () => events.emit('basket:delete', item) }
-		);
+		const basketItem = new BasketItem(cloneTemplate(cardBasketTemplate), {
+			onClick: () => events.emit('basket:delete', item),
+		});
 
 		return basketItem.render({
 			title: item.title,
@@ -126,7 +129,7 @@ events.on('basket:open', () => {
 			total: appData.getTotalBasketPrice(),
 		}),
 	});
-})
+});
 
 // Обработчик удаления элемента из корзины
 events.on('basket:delete', (item: IProduct) => {
@@ -134,63 +137,84 @@ events.on('basket:delete', (item: IProduct) => {
 	item.selected = false;
 	basket.total = appData.getTotalBasketPrice();
 	page.counter = appData.getBasketAmount();
-	basket.refreshIndexes();
+});
+
+// Обработчик изменения корзины
+events.on('basket:change', () => {
+	const items = appData.basket.map((item, index) => {
+		const basketItem = new BasketItem(cloneTemplate(cardBasketTemplate), {
+			onClick: () => events.emit('basket:delete', item),
+		});
+
+		return basketItem.render({
+			title: item.title,
+			price: item.price,
+			index: index + 1,
+		});
+	});
+
+	basket.items = items;
+	basket.total = appData.getTotalBasketPrice();
+
 	if (!appData.basket.length) {
 		basket.setDisabledButton(true);
 	}
-})
+});
 
 // Обработчик открытия модального окна заказа
 events.on('order:open', () => {
-	console.log('render open order');
 	modal.render({
-		content: order.render(
-			{
-				address: '',
-				valid: false,
-				errors: []
-			}
-		),
+		content: order.render({
+			address: '',
+			valid: false,
+			errors: [],
+		}),
 	});
-})
+});
 
 // Обработчик изменения поля заказа
-events.on('orderInput:change', (data: { field: keyof IOrderForm, value: string }) => {
-	appData.setOrderField(data.field, data.value);
-})
+events.on(
+	'orderInput:change',
+	(data: { field: keyof IOrderForm; value: string }) => {
+		appData.setOrderField(data.field, data.value);
+	}
+);
 
 // Обработчик изменения ошибок полей заказа
 events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {
 	const { payment, address } = errors;
 	order.valid = !payment && !address;
-	order.errors = Object.values({ payment, address }).filter(i => !!i).join('; ');
+	order.errors = Object.values({ payment, address })
+		.filter((i) => !!i)
+		.join('; ');
 });
 
 // Обработчик сабмита модального окна заказа
 events.on('order:submit', () => {
 	modal.render({
-		content: contacts.render(
-			{
-				valid: false,
-				errors: []
-			}
-		),
+		content: contacts.render({
+			valid: false,
+			errors: [],
+		}),
 	});
-})
+});
 
 // Обработчик изменения ошибок полей контактов пользователя
 events.on('contactsFormErrors:change', (errors: Partial<IOrderForm>) => {
 	const { email, phone } = errors;
 	contacts.valid = !email && !phone;
-	contacts.errors = Object.values({ phone, email }).filter(i => !!i).join('; ');
+	contacts.errors = Object.values({ phone, email })
+		.filter((i) => !!i)
+		.join('; ');
 });
 
 // Обработчик сабмита модального окна конактов пользователя
 events.on('contacts:submit', () => {
 	appData.order.total = appData.getTotalBasketPrice();
-	appData.order.items = appData.basket.map(item => item.id);
+	appData.order.items = appData.basket.map((item) => item.id);
 
-	api.post('/order', appData.order)
+	api
+		.post('/order', appData.order)
 		.then((res) => {
 			events.emit('success:open', res);
 			appData.clearOrderData();
@@ -198,18 +222,18 @@ events.on('contacts:submit', () => {
 			page.counter = 0;
 		})
 		.catch((err) => {
-			console.log(err)
-		})
-})
+			console.log(err);
+		});
+});
 
 // Обработчик открытия окна об успешном завершении заказа
 events.on('success:open', (res: ApiListResponse<string>) => {
 	modal.render({
 		content: success.render({
-			total: res.total
-		})
-	})
-})
+			total: res.total,
+		}),
+	});
+});
 
 // Обработчик открытия модального окна
 events.on('modal:open', () => {
